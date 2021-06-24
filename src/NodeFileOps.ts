@@ -13,7 +13,7 @@ class NodeFileOps {
     enumerate(dirPath:string, callback:any) {
         let apath = path.normalize(path.join(root, dirPath))
         if(!fs.existsSync(apath)) {
-            console.error('error: path not found ' + apath)
+            // console.error('warning: path not found ' + apath)
             return;
         }
         let entries = fs.readdirSync(apath)
