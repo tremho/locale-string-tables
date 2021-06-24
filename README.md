@@ -1,6 +1,6 @@
 # locale-string-tables
 
-###### Let the robots test code, but let people judge content
+###### Foundational code for i18n locale based string table lookup
 
 [![Build Status][build-status]][build-url]
 [![NPM version][npm-image]][npm-url]
@@ -10,7 +10,7 @@
 
 [build-status]: https://travis-ci.com/tremho/locale-string-tables.svg?branch=master
 
-[build-url]: https://travis-ci.org/tremho/locale-string-tables
+[build-url]: https://travis-ci.com/tremho/locale-string-tables
 
 [npm-image]: http://img.shields.io/npm/v/locale-string-tables.svg
 
