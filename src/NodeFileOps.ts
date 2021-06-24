@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-let root = '/Users/sohmert/tbd/locale-string-tables/'
+let root = './'
 
 class NodeFileOps {
     read(realPath:string): string {
