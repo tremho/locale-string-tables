@@ -1,11 +1,11 @@
 {
   "name": "locale-string-tables",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "description": "",
   "main": "build/index.js",
   "scripts": {
     "test": "npm run clean && npm run compile && tap --no-coverage ./build/test/*.test.js",
-    "test-direct": "npm run clean && npm run compile && node build/test/fallback.test.js",
+    "test-direct": "npm run clean && npm run compile && node build/test/api.test.js",
     "clean": "rm -fr build",
     "compile": "tsc",
     "doc": "npm run clean && npm run compile && inchjs && cd build; tsccd ./; documentation readme --readme-file ../README.md --markdown-toc false --section API src"

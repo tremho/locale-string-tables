@@ -1,5 +1,6 @@
 
 /*
+The primary i18n support foundation code.
  */
 
 import {FileOps, StringTable} from "./StringTable";
@@ -12,7 +13,7 @@ try {
 } catch(e) {
 }
 
-let INTL = null
+let INTL = Intl
 
 let systemLanguage = 'en'
 let systemRegion = 'US'
@@ -62,20 +63,13 @@ export class LocaleStrings {
      *  `read(filepath)` - read text from the given true file path (e.g. fs.readFileSync)
      *  `enumerate(relDir)` -- enumerates recursively the folder (relative to presumed root) and calls back with full file paths for each fle
      *  `rootPath` -- a string property or getter function that returns the relative or absolute path to the presumed root.
-     *
-     *  The `useIntl` flag controls whether or not W3C Intl library will be used at all.
-     *  This may be useful in browser contexts, where full W3C support is available, or
-     *  in Node environments if Node is built with full Intl support.
-     *  If Intl is not available, or does not appear to support languages, it is disabled, regardless.
      *  The `customLocation` optional path can point to someting other than "i18n/" as the folder off of root for the locale string files.
-     * @param fileOps
-     * @param useIntl
-     * @param customLocation
+     * @param {FileOps} fileOps - object containing necessary file operations for this environment
+     * @param {string} [customLocation] - optional alternate folder path other than 'i18n/'
      */
-    init(fileOps: FileOps, useIntl?: boolean, customLocation?:string):void {
+    init(fileOps: FileOps, customLocation?:string):void {
         i18nFolder = customLocation || 'i18n/'
         gFileOps = fileOps
-        if(useIntl) INTL = Intl
         installedLocales = {}
         this.loadForLocale(getSystemLocale())
         this.setLocale(getSystemLocale())
@@ -84,7 +78,7 @@ export class LocaleStrings {
     /**
      * Loads the translation string tables for a given locale,
      * but does not change the current setting.
-     * @param locale
+     * @param {string} locale - the RFC 1766 language-region specifier
      */
     loadForLocale(locale):void {
         if(!locale) locale = getSystemLocale()
@@ -114,7 +108,7 @@ export class LocaleStrings {
     /**
      * Switches to a new locale.
      * If the locale has not been previously loaded, it is loaded now.
-     * @param locale
+     * @param {string} locale - the RFC 1766 language-region specifier
      */
     setLocale(locale):void {
         if(!locale) locale = getSystemLocale()
@@ -135,7 +129,9 @@ export class LocaleStrings {
 
     /**
      * Tests to see if the given locale is loaded.
-     * @param locale
+     * @param {string} locale - the RFC 1766 language-region specifier
+     *
+     * @return {boolean} `true` if the specified locale has been loaded
      */
     isLocaleLoaded(locale):boolean {
         return !!installedLocales[locale]
@@ -143,7 +139,9 @@ export class LocaleStrings {
 
     /**
      * Tests to see if the given string Id can be found in the current locale table.
-     * @param id
+     * @param {string} id - the string identifier to find in the current locale
+     *
+     * @return {boolean} `true` if the specified string id exists in the currently active table
      */
     hasLocaleString(id):boolean {
         if (!table) throw (Error('i18n init() has not been called before using'))
@@ -158,9 +156,11 @@ export class LocaleStrings {
      * if `silent` is not true, the console will emit a warning indicating that the string Id requested is
      * not found in the table, and will show the default or decorated return value also.  This may be useful
      * in reconciling string tables. pass `true` for the `silent` option to prevent these messages.
-     * @param id
-     * @param useDefault
-     * @param silent
+     * @param {string} id - the string identifier to find in the current locale
+     * @param {string | undefined} useDefault - the string to return if the id is not found in the table.
+     * do not include, or use _undefined_ to have a 'decorated' version of the id returned in this case.
+     * @param {boolean} silent - if the string id is not found, a warning is emitted to the console. Passing
+     * `true` here will silence these warnings.
      */
     getLocaleString(id, useDefault?:string, silent?:boolean):string {
         if (!table) throw (Error('i18n init() has not been called before using'))
@@ -190,17 +190,10 @@ export class LocaleStrings {
      * @param {boolean} [shallow] Optional; if true recursion is prohibited
      * @static
      */
-    populateObjectStrings (obj, shallow) {
+    populateObjectStrings (obj:any, shallow?:boolean):void {
         Object.getOwnPropertyNames(obj).forEach(p => {
             if (typeof obj[p] === 'string') {
-                const s = obj[p]
-                if (s.charAt(0) === '@') {
-                    let n = s.indexOf(':')
-                    if (n === -1) n = undefined
-                    const t = s.substring(1, n)
-                    const d = n ? s.substring(n + 1) : undefined
-                    obj[p] = this.getLocaleString(t, d, true)
-                }
+                obj[p] = this.getTokenDefault(obj[p])
             } else if (!shallow && typeof obj[p] === 'object') {
                 this.populateObjectStrings(obj[p], shallow)
             }
@@ -213,24 +206,15 @@ export class LocaleStrings {
      * _However_: This makes a __COPY__ of the passed-in object with the translated values.
      * This allows the original to be used for re-translation more easily.
      *
-     * @param obj
-     * @param shallow
+     * @param {object} obj  Object to be traversed for '@token' and '@token:default' patterns.
+     * @param {boolean} [shallow] Optional; if true recursion is prohibited
      * @return {object} Resulting object with translated strings.
      */
-    translateObjectStrings (obj, shallow) {
+    translateObjectStrings (obj:any, shallow?:boolean):any {
         const outObj = {}
         Object.getOwnPropertyNames(obj).forEach(p => {
             if (typeof obj[p] === 'string') {
-                const s = obj[p]
-                if (s.charAt(0) === '@') {
-                    let n = s.indexOf(':')
-                    if (n === -1) n = undefined
-                    const t = s.substring(1, n)
-                    const d = n ? s.substring(n + 1) : undefined
-                    outObj[p] = this.getLocaleString(t, d, true)
-                } else {
-                    outObj[p] = obj[p]
-                }
+                outObj[p] = this.getTokenDefault(obj[p])
             } else if (!shallow && typeof obj[p] === 'object') {
                 outObj[p] = this.translateObjectStrings(obj[p], shallow)
             } else {
@@ -238,6 +222,47 @@ export class LocaleStrings {
             }
         })
         return outObj
+    }
+
+    /**
+     * Parses an incoming string for possible localized substitutions.
+     * String is searched  for patterns of the form `@token:default`, meaning that
+     * the substring following the '@' character to the first occurrence of a ':' character,
+     * or else the remainder of the string, is used asa token into the locale string table.
+     * If there is a : character in the string, the
+     * substring following, up to the next '@' or the end of the string is used as the
+     * default if the string table does not have the token entry.
+     * This is effectively equivalent to `getLocalString(token, default)` for the strings
+     * converted.
+     * If a literal '@' or ':' is desired, use `@@` and `::`, respectively
+     *
+     * @param {string} inStr - the string with @token:default substitutions to make
+     * @returns {string} - the returned translated or default string.
+     */
+    getTokenDefault(inStr:string, silent?:boolean):string {
+        let outStr = ''
+        let sp = 0
+        let ti
+        // prep for any escapes first
+        inStr = inStr.replace(/@@/g, '%%AT%%').replace(/::/g, '%%SEP%%')
+        while((ti = inStr.indexOf('@', sp)) !== -1) {
+            let ci = inStr.indexOf(':', ti)
+            if(ci === -1) ci = inStr.length
+            let tok = inStr.substring(ti+1, ci)
+            let nti = inStr.indexOf('@', ci)
+            if(nti === -1) nti = inStr.length;
+            let def
+            if(nti > ci) {
+                def = inStr.substring(ci + 1, nti).replace('%%AT%%', '@').replace('%%SEP%%', ':')
+            }
+
+            let sub = this.getLocaleString(tok, def, silent)
+            let pre = inStr.substring(sp, ti)
+            outStr += pre + sub
+            if(def && def.charAt(def.length-1) === ' ') outStr += ' '
+            sp = nti
+        }
+        return outStr
     }
 
     /**
@@ -329,7 +354,6 @@ export class LocaleStrings {
      * @param {number} count
      * @param {string} [type]   default is 'cardinal'.  'ordinal' is *not yet* supported here.
      * @returns {string}
-     * @static
      */
     getPluralizedString (stringId, count, type = 'cardinal') {
         let locale = getSystemLocale() // TODO support passed-in locale, which means something like what we have in formatter
@@ -347,9 +371,9 @@ export class LocaleStrings {
             console.error('No script')
         }
 
-        if (!prSelect && Intl && Intl.PluralRules) {
+        if (!prSelect && INTL && INTL.PluralRules) {
             // @ts-ignore
-            prSelect = new Intl.PluralRules(locale, { type }).select()
+            prSelect = new INTL.PluralRules(locale, { type }).select()
         }
 
         if (prSelect) {
@@ -378,6 +402,8 @@ export class LocaleStrings {
 
     /**
      * Returns an array of all the locales that have been currently loaded.
+     *
+     * @returns {string[]} Array of loaded locale strings
      */
     getInstalledLocales() {
         return Object.getOwnPropertyNames(installedLocales)

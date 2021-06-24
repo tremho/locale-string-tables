@@ -17,6 +17,24 @@ i18n.loadForLocale('fr-CA')
 function apiTest() {
     Tap.test('API', t => {
 
+        let r,x;
+
+        r = i18n.getTokenDefault('@test.greeting')
+        x = 'howdy dude'
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+        r = i18n.getTokenDefault('@missing:default string')
+        x = 'default string'
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+        r = i18n.getTokenDefault('@missing:')
+        x = ''
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+        r = i18n.getTokenDefault('@test.greeting:something wrong @missing:default string')
+        x = 'howdy dude default string'
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+        r = i18n.getTokenDefault('@test.foobar:foobar is @@key::value')
+        x = 'foobar is @key:value'
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+
         let objStr = {
             greet: "@test.greeting",
             miss: "@test.missing",
@@ -26,7 +44,8 @@ function apiTest() {
             }
         }
         i18n.populateObjectStrings(objStr)
-        let r = objStr.greet, x = 'howdy dude' // en-US
+        r = objStr.greet;
+        x = 'howdy dude' // en-US
         t.ok(r === x, `expected "${x}", got "${r}"`)
         r = objStr.miss; x = '%$$>test.missing<$$%'
         t.ok(r === x, `expected "${x}", got "${r}"`)
