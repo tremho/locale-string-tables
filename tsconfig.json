@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "allowJs": true,
+    "target": "es5",
+    "sourceMap": true,
+    "lib": [
+      "dom",
+      "es2015",
+      "scripthost",
+      "es2015.proxy"
+    ]
+  },
+  "include": [
+    "./index.ts",
+    "./src/**/*",
+    "./test/**/*"
+  ]
+}
