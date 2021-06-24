@@ -17,6 +17,7 @@
     "@types/node": "^15.12.4",
     "inchjs": "^0.4.1",
     "tap": "^15.0.9",
-    "ts-clear-classdoc": "^1.0.1"
+    "ts-clear-classdoc": "^1.0.1",
+    "tsc": "^2.0.3"
   }
 }
