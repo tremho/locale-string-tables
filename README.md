@@ -202,7 +202,7 @@ NodeFileOps.ts
     import * as fs from 'fs'
     import * as path from 'path'
 
-    let root = '/Users/sohmert/tbd/locale-string-tables/'
+    let root = './'
 
     class NodeFileOps {
        // read a text file, returning contents as string
