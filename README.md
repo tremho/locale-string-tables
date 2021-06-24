@@ -12,13 +12,13 @@
 
 [build-url]: https://travis-ci.com/tremho/locale-string-tables
 
-[npm-image]: http://img.shields.io/npm/v/locale-string-tables.svg
+[npm-image]: http://img.shields.io/npm/v/@tremho/locale-string-tables.svg
 
-[npm-url]: https://npmjs.org/package/locale-string-tables
+[npm-url]: https://npmjs.org/package/@tremho/locale-string-tables
 
-[downloads-image]: http://img.shields.io/npm/dm/locale-string-tables.svg
+[downloads-image]: http://img.shields.io/npm/dm/@tremho/locale-string-tables.svg
 
-[total-downloads-image]: http://img.shields.io/npm/dt/locale-string-tables.svg?label=total%20downloads
+[total-downloads-image]: http://img.shields.io/npm/dt/@tremho/locale-string-tables.svg?label=total%20downloads
 
 [twitter-image]: https://img.shields.io/twitter/follow/Tremho1.svg?style=social&label=Follow%20me
 
