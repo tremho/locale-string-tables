@@ -1,7 +1,7 @@
 {
-  "name": "locale-string-tables",
+  "name": "@tremho/locale-string-tables",
   "version": "0.5.0",
-  "description": "",
+  "description": "###### Foundational code for i18n locale based string table lookup",
   "main": "build/index.js",
   "scripts": {
     "test": "npm run clean && npm run compile && tap --no-coverage ./build/test/*.test.js",
@@ -11,7 +11,7 @@
     "doc": "npm run clean && npm run compile && inchjs && cd build; tsccd ./; documentation readme --readme-file ../README.md --markdown-toc false --section API src"
   },
   "keywords": [],
-  "author": "",
+  "author": "tremho",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^15.12.4",
@@ -19,5 +19,17 @@
     "tap": "^15.0.9",
     "ts-clear-classdoc": "^1.0.1",
     "typescript": "^4.3.4"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tremho/locale-string-tables.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tremho/locale-string-tables/issues"
+  },
+  "homepage": "https://github.com/tremho/locale-string-tables#readme"
 }
