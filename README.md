@@ -9,14 +9,20 @@
 [![Twitter Follow][twitter-image]][twitter-url]
 
 [build-status]: https://travis-ci.com/tremho/locale-string-tables.svg?branch=master
-[build-url]: https://travis-ci.org/tremho/locale-string-tables
-[npm-image]: http://img.shields.io/npm/v/locale-string-tables.svg
-[npm-url]: https://npmjs.org/package/locale-string-tables
-[downloads-image]: http://img.shields.io/npm/dm/locale-string-tables.svg
-[total-downloads-image]: http://img.shields.io/npm/dt/locale-string-tables.svg?label=total%20downloads
-[twitter-image]: https://img.shields.io/twitter/follow/Tremho1.svg?style=social&label=Follow%20me
-[twitter-url]: https://twitter.com/Tremho1
 
+[build-url]: https://travis-ci.org/tremho/locale-string-tables
+
+[npm-image]: http://img.shields.io/npm/v/locale-string-tables.svg
+
+[npm-url]: https://npmjs.org/package/locale-string-tables
+
+[downloads-image]: http://img.shields.io/npm/dm/locale-string-tables.svg
+
+[total-downloads-image]: http://img.shields.io/npm/dt/locale-string-tables.svg?label=total%20downloads
+
+[twitter-image]: https://img.shields.io/twitter/follow/Tremho1.svg?style=social&label=Follow%20me
+
+[twitter-url]: https://twitter.com/Tremho1
 
 This module allows localization strings to be provided for an array of languages and regions.
 It has a cascading structure, so the more specific language + region entries
@@ -68,37 +74,37 @@ In these folders, you may wish to define strings (such as formats or other non-l
 that apply to a geographical region regardless of the language.
 
 Your `i18n` folder tree might look like this, for instance:
-```
-    i18n
-        common
-            serviceEndpoints.json
-            metricUnits.json
-        common-us
-            USImpUnits.json
-        en
-            dateStrings.json
-            welcome.json
-            account.json
-            order.json   
-        en-GB
-            dateStrings.json
-            welcome.json
-            account.json
-            order.json   
-        es
-            dateStrings.json
-            welcome.json
-            account.json
-            order.json   
-        fr
-            dateStrings.json
-            welcome.json
-            account.json
-            order.json   
-        fr-CA
-            welcomeCA.json
-            orderCA.json
-```
+
+        i18n
+            common
+                serviceEndpoints.json
+                metricUnits.json
+            common-us
+                USImpUnits.json
+            en
+                dateStrings.json
+                welcome.json
+                account.json
+                order.json   
+            en-GB
+                dateStrings.json
+                welcome.json
+                account.json
+                order.json   
+            es
+                dateStrings.json
+                welcome.json
+                account.json
+                order.json   
+            fr
+                dateStrings.json
+                welcome.json
+                account.json
+                order.json   
+            fr-CA
+                welcomeCA.json
+                orderCA.json
+
 The `.json` files that are in each folder can have any
 name, but must have the .json extension, and must contain valid 
 JSON.  You may wish to choose file names that represent the
@@ -125,10 +131,11 @@ or language-region entry.
 
 Precedence always occurs from most specific to least, so,
 in order of precedence:
-- lang-region
-- lang
-- common-region
-- common
+
+-   lang-region
+-   lang
+-   common-region
+-   common
 
 Note that strings are just that: Strings of text. Most commonly, 
 these are translations of words and phrases into different
@@ -162,131 +169,122 @@ You must create an instance of locale-string-tables and
 use this in your application.
 The steps to creating and initializing the instance are as follows:
 
-1. install locale-string-version.
-If you haven't already, you can install it as follows:
+1.  install locale-string-version.
+    If you haven't already, you can install it as follows:
 
 
     npm install @tremho/install-string-tables   
-   
 
-2. Define a 'FileOps' object.
-This is simply an object with the following properties
+2.  Define a 'FileOps' object.
+    This is simply an object with the following properties
 
-- function `read`(pathname) : a function that reads and
-returns the text from the given pathname
-
-  
-- function `enumerate`(relDir, fileCallback) : a function that 
-recursively enumerates the directories starting at the folder 
-designated by `relDir`, a relative pathname as referenced from
-your project root (in which you have placed your `ii8n` folder tree).
-This function will send the files it finds within this tree back through fileCallback,
-with the fully realized pathname of the file as the argument.
+-   function `read`(pathname) : a function that reads and
+    returns the text from the given pathname
+-   function `enumerate`(relDir, fileCallback) : a function that 
+    recursively enumerates the directories starting at the folder 
+    designated by `relDir`, a relative pathname as referenced from
+    your project root (in which you have placed your `ii8n` folder tree).
+    This function will send the files it finds within this tree back through fileCallback,
+    with the fully realized pathname of the file as the argument.
 
 
-- string property or getter function `rootPath` : returns the
-relative or absolute path to the root folder.
+-   string property or getter function `rootPath` : returns the
+    relative or absolute path to the root folder.
 
-  
 Since different applications may use this module in different
 contexts, it is up to the application to supply these basic
 file operations.  If you are working with Node, the following
 code will work.  If you are relying on a different platform file
 system, you will need to adjust to match your platform.
 
-
 NodeFileOps.ts
-```
-import * as fs from 'fs'
-import * as path from 'path'
 
-let root = '/Users/sohmert/tbd/locale-string-tables/'
+    import * as fs from 'fs'
+    import * as path from 'path'
 
-class NodeFileOps {
-   // read a text file, returning contents as string
-    read(realPath:string): string {    
-        return fs.readFileSync(realPath).toString()
-    }
-    // enumerate all files within the folder tree given,
-    // sending paths to files found through callback
-    enumerate(dirPath:string, callback:any) {
-        let apath = path.normalize(path.join(root, dirPath))
-        if(!fs.existsSync(apath)) {
-            console.error('error: path not found '+apath)
-            return;
+    let root = '/Users/sohmert/tbd/locale-string-tables/'
+
+    class NodeFileOps {
+       // read a text file, returning contents as string
+        read(realPath:string): string {    
+            return fs.readFileSync(realPath).toString()
         }
-        let entries = fs.readdirSync(apath)
-        entries.forEach(file => {
-            let pn = path.join(root, dirPath, file)
-            let state = fs.lstatSync(pn)
-            if(state.isDirectory()) {
-                this.enumerate(path.join(dirPath, file), callback)
-            } else {
-                callback(pn)
+        // enumerate all files within the folder tree given,
+        // sending paths to files found through callback
+        enumerate(dirPath:string, callback:any) {
+            let apath = path.normalize(path.join(root, dirPath))
+            if(!fs.existsSync(apath)) {
+                console.error('error: path not found '+apath)
+                return;
             }
-        })
+            let entries = fs.readdirSync(apath)
+            entries.forEach(file => {
+                let pn = path.join(root, dirPath, file)
+                let state = fs.lstatSync(pn)
+                if(state.isDirectory()) {
+                    this.enumerate(path.join(dirPath, file), callback)
+                } else {
+                    callback(pn)
+                }
+            })
+        }
+        
+        // property (or getter) that provides the root path
+        // that the `i18n` tree resides within.
+        get rootPath() { return '../../'}
     }
-    
-    // property (or getter) that provides the root path
-    // that the `i18n` tree resides within.
-    get rootPath() { return '../../'}
-}
 
-// note that we instantiate this class before exporting
-export default new NodeFileOps()
-```
+    // note that we instantiate this class before exporting
+    export default new NodeFileOps()
 
-3. create a module for your instance.  In this example, we'll call this module
-   `i18`.  It should start out looking something like this:
+3.  create a module for your instance.  In this example, we'll call this module
+    `i18`.  It should start out looking something like this:
 
 i18n.ts
-```
-import {getSystemLocale, LocaleStrings}  from '@tremho/locale-string-tables'
 
-// Have  your fileops ready (change this import line to suit your own FileOps object)
-import {NodeFileOps} from './NodeFileOps' 
+    import {getSystemLocale, LocaleStrings}  from '@tremho/locale-string-tables'
 
-// Construct the instance
-const i18n = new LocaleStrings()
-// init it with your fileops object
-i18n.init(NodeFileOps)
+    // Have  your fileops ready (change this import line to suit your own FileOps object)
+    import {NodeFileOps} from './NodeFileOps' 
 
-// (optional) preload locales you wish to use
-// (they will load on demand anyway if you choose not to do that here)
-i18n.loadForLocale(getSystemLocale())
-i18n.loadForLocale('en')
-i18n.loadForLocale('en-GB')
-i18n.loadForLocale('fr-FR')
-i18n.loadForLocale('fr-CA')
+    // Construct the instance
+    const i18n = new LocaleStrings()
+    // init it with your fileops object
+    i18n.init(NodeFileOps)
 
-// set the current locale
-i18n.setLocale(getSystemLocale())
+    // (optional) preload locales you wish to use
+    // (they will load on demand anyway if you choose not to do that here)
+    i18n.loadForLocale(getSystemLocale())
+    i18n.loadForLocale('en')
+    i18n.loadForLocale('en-GB')
+    i18n.loadForLocale('fr-FR')
+    i18n.loadForLocale('fr-CA')
 
-// export this for your app to use
-export default i18n 
-```
+    // set the current locale
+    i18n.setLocale(getSystemLocale())
 
-4. Use and apply in your own modules
+    // export this for your app to use
+    export default i18n 
 
-```
-import i18n from `./i18n'
+4.  Use and apply in your own modules
 
-function someFunction() {
-    // first english
-    i18n.setLocale('en-US')
-    let greet = i18n.getLocaleString('example.greeting')
-    console.log(greet)
-    // then french
-    i18n.setLocale('fr-FR')
-    greet = i18n.getLocaleString('example.greeting')
-    console.log(greet)
-    // then spanish
-    i18n.setLocale('es-ES')
-    greet = i18n.getLocaleString('example.greeting')
-    console.log(greet)
-}
 
-```
+    import i18n from `./i18n'
+
+    function someFunction() {
+        // first english
+        i18n.setLocale('en-US')
+        let greet = i18n.getLocaleString('example.greeting')
+        console.log(greet)
+        // then french
+        i18n.setLocale('fr-FR')
+        greet = i18n.getLocaleString('example.greeting')
+        console.log(greet)
+        // then spanish
+        i18n.setLocale('es-ES')
+        greet = i18n.getLocaleString('example.greeting')
+        console.log(greet)
+    }
 
 In this hypothetical module, if `someFunction` is called,
 it will attempt to display a "hello" greeting in each of
@@ -297,35 +295,283 @@ Create a file named `example.json` with the following contents
 and place in a folder at `i18n/en`:
 
 example.json
-```
-    {
-        "example.greeting" : "Hello"
-    }
-```
+
+        {
+            "example.greeting" : "Hello"
+        }
+
 Copy this file to folders at `i18n/es` and `i18n/fr` also, and 
 then edit these so that the one in the `fr` folder looks like this:
-```
-    {
-        "example.greeting" : "Bonjour"
-    }
-```
+
+        {
+            "example.greeting" : "Bonjour"
+        }
+
 and the one in the `i18n/es` folder like this:
-```
-    {
-        "example.greeting" : "Hola"
-    }
-```
+
+        {
+            "example.greeting" : "Hola"
+        }
+
 Now when you run your app, it should work as expected.  If you 
 ran this program before supplying these strings, or missing one of
 the referenced languages, you would see both warning messages as
-well as the string "%$$>example.greeting<$$%" returned.
+well as the string "%$$>example.greeting&lt;$$%" returned.
 
 See the API docs for more on managing this behavior and using
 strings.
 
-
 ### API
 
+<!-- Generated by documentation.js. Update this documentation by updating the source code. -->
+
+#### getSystemLocale
+
+Interrogates services of the underlying platform to determine the
+current system locale.
+For browser contexts, this comes from the window.navigator object
+For Nativescript, this comes from the platform info
+Node does not have a convenient means of identifying this, so
+it falls to the default case, which is to assign the system locale
+as 'en-US'
+
+#### init
+
+We must initialize LocaleStrings with a FileOps object that contains the following methods:
+ `read(filepath)` - read text from the given true file path (e.g. fs.readFileSync)
+ `enumerate(relDir)` -- enumerates recursively the folder (relative to presumed root) and calls back with full file paths for each fle
+ `rootPath` -- a string property or getter function that returns the relative or absolute path to the presumed root.
+
+ The `useIntl` flag controls whether or not W3C Intl library will be used at all.
+ This may be useful in browser contexts, where full W3C support is available, or
+ in Node environments if Node is built with full Intl support.
+ If Intl is not available, or does not appear to support languages, it is disabled, regardless.
+ The `customLocation` optional path can point to someting other than "i18n/" as the folder off of root for the locale string files.
+
+##### Parameters
+
+-   `fileOps`  
+-   `useIntl`  
+-   `customLocation`  
+
+#### loadForLocale
+
+Loads the translation string tables for a given locale,
+but does not change the current setting.
+
+##### Parameters
+
+-   `locale`  
+
+#### setLocale
+
+Switches to a new locale.
+If the locale has not been previously loaded, it is loaded now.
+
+##### Parameters
+
+-   `locale`  
+
+#### isLocaleLoaded
+
+Tests to see if the given locale is loaded.
+
+##### Parameters
+
+-   `locale`  
+
+#### hasLocaleString
+
+Tests to see if the given string Id can be found in the current locale table.
+
+##### Parameters
+
+-   `id`  
+
+#### getLocaleString
+
+Returns the localized string according to the current locale for the
+string Id passed.
+If the string does not exist, the value supplied by `useDefault` is returned instead.
+If useDefault is undefined, a decorated version of the string ID is returned, as "%$$>string.id&lt;$$%"
+if `silent` is not true, the console will emit a warning indicating that the string Id requested is
+not found in the table, and will show the default or decorated return value also.  This may be useful
+in reconciling string tables. pass `true` for the `silent` option to prevent these messages.
+
+##### Parameters
+
+-   `id`  
+-   `useDefault`  
+-   `silent`  
+
+#### populateObjectStrings
+
+Traverses the object (deep by default, or without recursion if `shallow` is true)
+looking for string properties that begin with '@'.  These strings are parsed
+as `@token:default`, meaning that the substring following the '@' character for the
+remainder of the string or to the first occurrence of a ':' character is used as
+a token into the locale string table.  If there is a : character in the string, the
+substring following this is used as the default if the string table does not have
+the token entry.
+This is effectively equivalent to `getLocalString(token, default)` for the strings
+converted.  This method is a convenient means of translating many strings at once
+and for populating objects with values that include localizable string data.
+
+Note that this version translates in place, without a return object.
+This makes it unsuitable for re-translation, but useful for passing functional objects.
+
+##### Parameters
+
+-   `obj` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Object to be traversed for '@token' and '@token:default' patterns.
+-   `shallow` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** Optional; if true recursion is prohibited
+
+#### translateObjectStrings
+
+Preferred method of translating a set of strings.
+See `populateObjectStrings` for general description.
+_However_: This makes a **COPY** of the passed-in object with the translated values.
+This allows the original to be used for re-translation more easily.
+
+##### Parameters
+
+-   `obj`  
+-   `shallow`  
+
+Returns **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Resulting object with translated strings.
+
+#### getPluralizedString
+
+Provides pluralization support.
+
+In English, pluralization is pretty simple: You either have a singular or a plural.
+
+The string tables alone could be used here: Lookup word.plural for counts != 1 and make sure the
+table has the correct entries (e.g. 'dog' and 'dogs', 'sheep' and 'sheep', 'ox' and 'oxen')
+
+Further, we could eliminate the need for too many duplicates by adding rules (i.e. append 's' by default)
+that are overridden if there is a string table '.plural' entry.
+
+Other languages are not so simple.  See discussion online for this topic in detail.
+For example, Russian (and other languages) support multiple forms of pluralized words for common items depending
+upon the count.  There may be a different name for a 'few' things than for 'many'.  Or for 'zero'. Or when
+fractional amounts are involved.  Some languages use different wording for counts with 1 as the last digit.
+And so it goes.  Using tables with suffixes will work for all of these, but one must prepare.
+
+The W3C intl spec for `PluralRules` and its `select` method support the following plural results:
+ 'one', 'two', 'few', 'many' and 'other', (where other is synonymous with 'plural' by default).
+
+This in turn should be used to look up the corresponding correct word form in the i18n table.
+
+The i18n table for the language / locale must contain the word referenced in singular form and
+_may also_ require the pluralized form(s) as needed (per language).
+
+The pluralized form of the word is held in an id that is the same as the singular word identifier
+plus a suffix (e.g. '.plural').  For example:
+
+    "item.cow" : "cow",
+    "item.cow.plural" : "cows",
+    "item.sheep": "sheep",
+    "item.sheep.plural" : "sheep"
+
+ in other languages (or for ordinal support), one may use the other suffixes of
+ ".two", ".few", ".many" or "plural"
+
+Note that these map directly to the terminology of the
+W3C PluralRules specification, but with these exceptions:
+
+-   The PluralRules 'one' is not used.  The "no-suffix" original identifier is used.
+-   The PluralRules 'other' is changed to 'plural' as the suffix (more semantically aligned to english at least).
+
+Note that "simple plurals" need not be literally provided in the table if the plurization script can assign
+pluralization correctly.  For instance, in the above example, "item.cow" need not have a literal
+"item.cow.plural" compliment, since the word "cow" can be automatically pluralized to "cows" correctly.
+However, "item.sheep" will probably need the literal entry to prevent the algorithm from naming it as "sheeps".
+
+Automatic pluralization is the domain of the `findPlurals` method.  The `plural-en.js` script provided
+supplies the simple version for English, and handles appended "s" or "es" in most common cases, but does
+not handle exceptions (so use literals when in doubt).
+
+The `getPluralizedString` method encapsulates this into a single place.  However, it requires proper setup
+to be useful.
+
+It relies upon application-supplied code within the `i18n` folder.
+This code is within a script named for the language, as in `plurals-en.js` for the `en` language.
+
+This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
+
+-   **`getPluralRulesSelect`** takes two arguments
+-   `count` The number of items
+-   `type` [optional] is one of 'cardinal' or 'ordinal'. 'cardinal' is the default. 'ordinal' is _not yet_ supported here.  See the PluralRules definitions of these.
+    The function should return per `PluralRules.select` for this language.
+    It may choose to implement directly as a pass through to `intl.PluralRules` if this is available.
+    It must return one of 'one', 'two', 'few', 'many', or 'other' accordingly.
+    Note that for English, the allowed returns (for type 'cardinal') are 'one' and 'other'.
+    (future support for 'ordinal' in English will define the other return values per intl spec)
+
+-   **`findPlural`** takes three arguments
+-   `single` The word in singular form
+-   `count` The count to pluralize to
+-   `type` Optional. 'cardinal' is the default. 'ordinal' is not yet supported.
+    The function should return the pluralized version of the word in that form, either by rule or
+    internal lookup, or else return null.
+
+-   If the plural rule script is not available, the `intl.PluralRules` method will be used directly to
+    get the correct plural suffixed string from the i18n table.
+
+-   If neither of these support features are available, all requests will return a string "%$<NO PLURALS lang >$%"
+    (where _lang_ is the language requested).
+
+Note: future support for 'ordinal' and support for passed-in locale may be added later
+
+##### Parameters
+
+-   `stringId` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The i18n string identifier for the singular form of the word to pluralize
+-   `count` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `type` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** default is 'cardinal'.  'ordinal' is _not yet_ supported here.
+
+Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+#### getInstalledLocales
+
+Returns an array of all the locales that have been currently loaded.
+
+#### StringTable
+
+String Tables are a simple name/value pairing from a JSON file.
+This can be used as the basis for configuration, localization, or other common mappings.
+
+All string table files are relative to the app folder root.
+
+##### getString
+
+Returns a string from the string table
+
+###### Parameters
+
+-   `name`  
+
+Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+##### setString
+
+Sets the value of a string identifier.
+
+###### Parameters
+
+-   `name`  
+-   `value`  
+
+##### load
+
+Loads string values from a JSON file on disk.
+This is an asynchronous non-blocking promise call.
+
+###### Parameters
+
+-   `filePath`  
+-   `silent` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** `true` to supress file not found error.  Other errors may still throw.
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
 ### Known issues
 
@@ -342,4 +588,3 @@ page and record your suggestions there.
 
 If you would like to commit code that addresses an outstanding issue, please
 fork the repository and post a pull request with your changes.
-
