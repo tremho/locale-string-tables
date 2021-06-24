@@ -12,7 +12,10 @@ class NodeFileOps {
     }
     enumerate(dirPath:string, callback:any) {
         let apath = path.normalize(path.join(root, dirPath))
-        if(!fs.existsSync(apath)) return;
+        if(!fs.existsSync(apath)) {
+            console.error('error: path not found ' + apath)
+            return;
+        }
         let entries = fs.readdirSync(apath)
         entries.forEach(file => {
             let pn = path.join(root, dirPath, file)
