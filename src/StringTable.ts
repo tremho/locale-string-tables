@@ -39,6 +39,17 @@ export class StringTable {
     }
 
     /**
+     * Returns the number of strings in this table
+     */
+    numStrings() {
+        let cnt = 0
+        Object.getOwnPropertyNames(this.data || {}).forEach(p => {
+            if(typeof this.data[p] === 'string') cnt++
+        })
+        return cnt
+    }
+
+    /**
      * Loads string values from a JSON file on disk.
      * This is an asynchronous non-blocking promise call.
      * @param filePath

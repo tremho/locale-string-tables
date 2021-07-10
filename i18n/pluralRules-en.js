@@ -17,9 +17,10 @@ module.exports = {
    * will need to have .plural entries in the string tables.
    * @param single
    * @param count
+   * @param [select] the result of `getPluralRulesSelect` (not used for this language)
    * @return {string|*}
    */
-  findPlural (single, count, /* type = 'cardinal'*/) {
+  findPlural (single, count, select = '') {
     if(count === 1) return single
     let lastChar = single.charAt(single.length - 1)
     switch (lastChar) {
@@ -30,5 +31,22 @@ module.exports = {
       default:
         return single + 's'
     }
+  },
+
+  /**
+   * Simple ordinal numbering for English.
+   * spelled out up to 20, then suffix decorated according to last digit.
+   * output includes the word given as part of the resulting string (e.g. "sixth item")
+   * @param word
+   * @param count
+   */
+  makeOrdinal(word, count) {
+    const ords = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth",
+      "tenth","eleventh","twelfth","thirteenth","fourteenth","fifteenth", "sixteenth", "seventeenth", "eighteenth", "nineteenth"
+    ]
+    const lastDigs = ['th','st','nd','rd']
+    let ord = ords[count] || ''+count+(lastDigs[count % 10] || 'th')
+    return ord+ ' '+word
   }
 }
+

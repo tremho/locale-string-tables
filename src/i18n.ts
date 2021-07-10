@@ -21,6 +21,7 @@ let systemRegion = 'US'
 let i18nFolder
 let table
 let installedLocales = {}
+let installedLocaleStats = {}
 
 let gFileOps
 
@@ -56,6 +57,15 @@ export function getSystemLocale():string {
     return systemLanguage+'-'+systemRegion
 }
 
+export class LoadStats {
+    localeName:string
+    commonFiles:number
+    commonRegionFiles:number
+    languageFiles:number
+    regionFiles:number
+    totalStrings: number
+}
+
 export class LocaleStrings {
 
     /**
@@ -79,12 +89,14 @@ export class LocaleStrings {
      * Loads the translation string tables for a given locale,
      * but does not change the current setting.
      * @param {string} locale - the RFC 1766 language-region specifier
+     *
+     * @return {LoadStats} LoadStats object containing details of the loaded table
      */
-    loadForLocale(locale):void {
+    loadForLocale(locale):LoadStats {
         if(!locale) locale = getSystemLocale()
         // console.log('---->> loadForLocale ' + locale)
         if (installedLocales[locale]) {
-          return installedLocales[locale]
+          return installedLocaleStats[locale]
         }
         const parts = locale.split('-')
         let lang = (parts[0] || '').toLowerCase()
@@ -98,33 +110,45 @@ export class LocaleStrings {
         const ftable = new StringTable()
         ftable.setFileOps(gFileOps)
 
-        this.loadFromFolder(i18nFolder + 'common', ftable)
-        this.loadFromFolder(i18nFolder + 'common-'+region, ftable)
-        this.loadFromFolder(i18nFolder + lang, ftable)
-        this.loadFromFolder(i18nFolder + lang+'-'+region, ftable)
+        const stats = new LoadStats()
+        stats.localeName = locale
+        stats.commonFiles = this.loadFromFolder(i18nFolder + 'common', ftable)
+        stats.commonRegionFiles = this.loadFromFolder(i18nFolder + 'common-'+region, ftable)
+        stats.languageFiles = this.loadFromFolder(i18nFolder + lang, ftable)
+        stats.regionFiles = this.loadFromFolder(i18nFolder + lang+'-'+region, ftable)
+        stats.totalStrings = ftable.numStrings()
         installedLocales[locale] = ftable
+        installedLocaleStats[locale] = stats
+
+        return stats
     }
 
     /**
      * Switches to a new locale.
      * If the locale has not been previously loaded, it is loaded now.
      * @param {string} locale - the RFC 1766 language-region specifier
+     *
+     * @return {LoadStats} LoadStats object containing details of the table that has been set
      */
-    setLocale(locale):void {
+    setLocale(locale):LoadStats {
         if(!locale) locale = getSystemLocale()
-        this.loadForLocale(locale); // test for load and load it if necessary.
+        const stats = this.loadForLocale(locale); // test for load and load it if necessary.
         if(this.isLocaleLoaded(locale)) {
             table = installedLocales[locale]
         } else {
             throw 'Locale "'+locale+'" has not been loaded'
         }
+        return stats
     }
 
     // loads from an individual i18n folder and adds or overrides the strings in the table.
-    private loadFromFolder(dirPath:string, ftable:StringTable):void {
+    private loadFromFolder(dirPath:string, ftable:StringTable):number {
+        let filesLoaded = 0
         gFileOps.enumerate(dirPath, (filePath:string) => {
             ftable.load(filePath)
+            filesLoaded++
         })
+        return filesLoaded
     }
 
     /**
@@ -245,6 +269,7 @@ export class LocaleStrings {
         let ti
         // prep for any escapes first
         inStr = inStr.replace(/@@/g, '%%AT%%').replace(/::/g, '%%SEP%%')
+        if(inStr.indexOf('@') === -1) return inStr // return unmodified if no replacements will be made
         while((ti = inStr.indexOf('@', sp)) !== -1) {
             let ci = inStr.indexOf(':', ti)
             if(ci === -1) ci = inStr.length
@@ -268,6 +293,8 @@ export class LocaleStrings {
     /**
      * Provides pluralization support.
      *
+     * Also provides ordinal counting support.  That is, return the "nth item".
+     *
      * In English, pluralization is pretty simple: You either have a singular or a plural.
      *
      * The string tables alone could be used here: Lookup word.plural for counts != 1 and make sure the
@@ -277,13 +304,13 @@ export class LocaleStrings {
      * that are overridden if there is a string table '.plural' entry.
      *
      * Other languages are not so simple.  See discussion online for this topic in detail.
-     * For example, Russian (and other languages) support multiple forms of pluralized words for common items depending
+     * For example, Arabic or Russian (and other languages) support multiple forms of pluralized words for common items depending
      * upon the count.  There may be a different name for a 'few' things than for 'many'.  Or for 'zero'. Or when
      * fractional amounts are involved.  Some languages use different wording for counts with 1 as the last digit.
      * And so it goes.  Using tables with suffixes will work for all of these, but one must prepare.
      *
      * The W3C intl spec for `PluralRules` and its `select` method support the following plural results:
-     *  'one', 'two', 'few', 'many' and 'other', (where other is synonymous with 'plural' by default).
+     *  'one', 'two', 'few', 'many' and 'other', (where 'other' is synonymous with 'plural' by default).
      *
      * This in turn should be used to look up the corresponding correct word form in the i18n table.
      *
@@ -301,7 +328,7 @@ export class LocaleStrings {
      *  ```
      *
      *  in other languages (or for ordinal support), one may use the other suffixes of
-     *  ".two", ".few", ".many" or "plural"
+     *  ".zero", ".two", ".few", ".many" or "plural"
      *
      * Note that these map directly to the terminology of the
      * W3C PluralRules specification, but with these exceptions:
@@ -320,8 +347,30 @@ export class LocaleStrings {
      * The `getPluralizedString` method encapsulates this into a single place.  However, it requires proper setup
      * to be useful.
      *
-     * It relies upon application-supplied code within the `i18n` folder.
-     * This code is within a script named for the language, as in `plurals-en.js` for the `en` language.
+     * Specific plural string ids can be placed directly into the string table data by including the suffix ".plural"
+     * For example:
+     * ```
+     *      animal.names.cow = 'cow'
+     *      animal.names.cow.plural = 'cows'
+     *      animal.names.sheep = 'sheep'
+     *      animal.names.sheep.plural = 'sheep'
+     * ```
+     *  - Note that some languages pluralize differently depending upon the count, for example there may be different words
+     *  for 1 cow, 2 cows, 6 cows, or 20 cows
+     *     - This is the role of `getPluralRulesSelect` (see below), or `Intl.PluralRules.select()` if available.
+     *     - This should be supported by relevant pluralRules scripts where possible and practical.
+     *     - To support this behavior using the string tables, append the count to the string id, as in:
+     *     ```
+     *         animal.name.cow
+     *         animal.name.cow.two
+     *         animal.name.cow.few
+     *         animal.name.cow.many
+     *         animal.name.cow.plural
+     *      ```
+     *      - if the ordinal suffix is not found, the un-appended suffix '.plural' will be used for lookup.
+     *
+     * The other source for pluralization is an application-supplied `pluralRules` script.
+     * This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language.
      *
      * This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
      *
@@ -330,37 +379,51 @@ export class LocaleStrings {
      *  - `type` [optional] is one of 'cardinal' or 'ordinal'. 'cardinal' is the default. 'ordinal' is *not yet* supported here.  See the PluralRules definitions of these.
      * The function should return per `PluralRules.select` for this language.
      * It may choose to implement directly as a pass through to `intl.PluralRules` if this is available.
-     * It must return one of 'one', 'two', 'few', 'many', or 'other' accordingly.
+     * It must return one of 'zero', 'one', 'two', 'few', 'many', or 'other' accordingly.
      * Note that for English, the allowed returns (for type 'cardinal') are 'one' and 'other'.
      * (future support for 'ordinal' in English will define the other return values per intl spec)
      *
-     * - __`findPlural`__ takes three arguments
+     * - __`findPlural`__ takes two arguments
      *  - `single` The word in singular form
      *  - `count` The count to pluralize to
-     *  - `type` Optional. 'cardinal' is the default. 'ordinal' is not yet supported.
      * The function should return the pluralized version of the word in that form, either by rule or
      * internal lookup, or else return null.
      *
-     * - If the plural rule script is not available, the `intl.PluralRules` method will be used directly to
-     * get the correct plural suffixed string from the i18n table.
+     * - If the plural rule script is not available, the `Intl.PluralRules` method will be used directly to
+     * get the correct plural suffixed string from the i18n table, assuming a full or partial implementation of W3C Intl is
+     * available to the system.
      *
-     * - If neither of these support features are available, all requests will return a string "%$<NO PLURALS lang >$%"
+     * - if the stringId has no singular entry in the table, then an empty string will be returned.
+     *
+     * - If none of these support features are available, all requests will return a string "%$<NO PLURALS lang >$%"
      * (where *lang* is the language requested).
      *
+     * ##### Ordinal support in the pluralRules script
      *
-     * Note: future support for 'ordinal' and support for passed-in locale may be added later
+     * The `pluralRules-<lang>.js` script may also include support for ordinals by supplying the following function
+     * - __`makeOrdinal`__ takes two arguments
+     *  - `single` The word in singular form
+     *  - `count` The count to make ordinal to
+     * The function should return the correct ordinal form of the word in that form, either by rule or
+     * internal lookup, or else return null.  The ordinal should contain the word as well, not just the count,
+     * For example, in English, sending asking for 0,1,2,3,11 and 99 'cows' would return
+     *  "zeroeth cow", "first cow", "second cow", "third cow", "eleventh cow", "99th cow"
      *
+     * If the ordinal fails, the word itself is returned unmodified.
+     *
+     * @param {string} locale  The locale to pluralize this id for. If not given, the system locale is used.
      * @param {string} stringId The i18n string identifier for the singular form of the word to pluralize
-     * @param {number} count
-     * @param {string} [type]   default is 'cardinal'.  'ordinal' is *not yet* supported here.
+     * @param {number} count  The number of items involved in the pluralization or ordinal count
+     * @param {string} [type]   alllowed types are 'cardinal' and 'ordinal', default is 'cardinal'.
      * @returns {string}
      */
-    getPluralizedString (stringId, count, type = 'cardinal') {
-        let locale = getSystemLocale() // TODO support passed-in locale, which means something like what we have in formatter
+    getPluralizedString (locale, stringId, count, type = 'cardinal') {
+
+        if(!locale) locale = getSystemLocale()
 
         let prSelect
         let lang = locale.split('-')[0].toLowerCase()
-        let ruleScript = i18nFolder + 'plurals-' + lang
+        let ruleScript = i18nFolder + 'pluralRules-' + lang
         let rules = null
         try {
             rules = require(gFileOps.rootPath + ruleScript)
@@ -368,9 +431,10 @@ export class LocaleStrings {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
         } catch (e) {
-            console.error('No script')
+            console.error('No pluralRules script found for '+lang)
         }
 
+        // Use INTL if there
         if (!prSelect && INTL && INTL.PluralRules) {
             // @ts-ignore
             prSelect = new INTL.PluralRules(locale, { type }).select()
@@ -380,8 +444,15 @@ export class LocaleStrings {
             if (prSelect === 'other') prSelect = 'plural' // prefer this semantic to the w3c 'other' as more natural
 
             let single = this.getLocaleString(stringId)
+
+            if(!this.hasLocaleString(stringId)) return "" // return empty string if we have no singular ent
+
+            if(type === 'ordinal') {
+                return this.pluralize(locale, single, count, type)
+            }
+            // for cardinal, don't call pluralize because we are still working with ids.
             // return the single if one, or decorated id for non-find
-            if (prSelect === 'one' || !this.hasLocaleString(stringId)) {
+            if (prSelect === 'one') {
                 return single
             }
             // return the pluralized version, if in the table
@@ -396,14 +467,75 @@ export class LocaleStrings {
             // if not in table, this will return decorated fail id
             return this.getLocaleString(prId)
         } else {
-            return '%$<!--suppress HtmlUnknownTag --><NO PLURALS ' + lang + '>$%'
+            return '%$<NO PLURALS ' + lang + '>$%'
         }
+    }
+
+    /**
+     * Use the application-supplied `pluralRules-<lang>.js` to pluralize a word, or return it in ordinal form.
+     * See the discussion of the `pluralRules` script in the documentation for `getPluralizedString`.
+     * This function works the same way, but you pass the singular form word itself, not an identifier to look up in
+     * the tables.
+     *
+     * @param {string} locale  The locale to pluralize this id for. If not given, the system locale is used.
+     * @param {string} word  The word to be pluralized or ordinated, in singular form
+     * @param {number} count  The number of items involved in the pluralization or ordinal count
+     * @param {string} [type]   alllowed types are 'cardinal' and 'ordinal', default is 'cardinal'.
+     */
+    pluralize(locale, word, count, type = 'cardinal') {
+
+        if(!locale) locale = getSystemLocale()
+
+        let prSelect
+        let lang = locale.split('-')[0].toLowerCase()
+        let ruleScript = i18nFolder + 'pluralRules-' + lang
+        let rules = null
+        try {
+            rules = require(gFileOps.rootPath + ruleScript)
+            if (rules.getPluralRulesSelect) {
+                prSelect = rules.getPluralRulesSelect(count, type)
+            }
+        } catch (e) {
+        }
+
+        // Use INTL if there
+        if (!prSelect && INTL && INTL.PluralRules) {
+            // @ts-ignore
+            prSelect = new INTL.PluralRules(locale, { type }).select()
+        }
+
+        if(type === 'cardinal') {
+            if (rules && rules.findPlural) {
+                let pl = rules.findPlural(word, count, prSelect)
+                if (pl) return pl
+            } else {
+                if(!rules) console.error('No pluralRules script found for '+lang)
+                else console.error('No findPlural function found in pluralRules for '+lang)
+                return word
+            }
+        }
+        if(type === 'ordinal') {
+            if (rules && rules.makeOrdinal) {
+                let pl = rules.makeOrdinal(word, count, prSelect)
+                if (pl) return pl
+            } else {
+                if(!rules) console.error('No pluralRules script found for '+lang)
+                else console.error('No makeOrdinal function found in pluralRules for '+lang)
+                return word
+            }
+
+        } else {
+            console.error('Unrecognized pluralization type "'+type+'"')
+            return word
+        }
+
+
     }
 
     /**
      * Returns an array of all the locales that have been currently loaded.
      *
-     * @returns {string[]} Array of loaded locale strings
+     * @returns {Array} {string} Array of loaded locale strings
      */
     getInstalledLocales() {
         return Object.getOwnPropertyNames(installedLocales)

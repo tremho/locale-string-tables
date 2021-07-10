@@ -6,5 +6,10 @@
   "potato": "Potato",
   "potato.plural": "Potatoes",
   "octopus": "Octopus",
-  "octopus.plural": "Octopi"
+  "octopus.plural": "Octopi",
+  "miss" : "miss",
+  "ox": "ox",
+  "ox.plural": "oxen",
+  "box": "box",
+  "tomato" : "tomato"
 }

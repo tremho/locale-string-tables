@@ -35,6 +35,10 @@ function apiTest() {
         x = 'foobar is @key:value'
         t.ok(r === x, `expected "${x}", got "${r}"`)
 
+        r = i18n.getTokenDefault('nothing to replace')
+        x = 'nothing to replace'
+        t.ok(r === x, `expected "${x}", got "${r}"`)
+
         let objStr = {
             greet: "@test.greeting",
             miss: "@test.missing",
@@ -89,15 +93,3 @@ function apiTest() {
 
 apiTest()
 
-
-/*
-    populateObjectStrings,
-    translateObjectStrings,
-    getInstalledLocales,
-    clearInstalledLocale,
-    getAvailableLanguages,
-    getAvailableRegions,
-    getPluralizedString,
-
-
- */
