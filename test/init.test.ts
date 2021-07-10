@@ -38,6 +38,14 @@ function initTest() {
         t.ok(stats.languageFiles === 1, 'Expected 1 en file in bogus region, got '+ stats.languageFiles)
         t.ok(stats.regionFiles === 0, 'Expected no region files in bogus region, got '+ stats.regionFiles)
 
+        stats = i18n.loadForLocale()
+        t.ok(typeof stats === 'object' && typeof stats.totalStrings === 'number' && typeof stats.localeName === 'string', 'loadForLocale should return a stats object')
+        let ok = true
+        if(!stats.languageFiles  && !stats.regionFiles && !stats.commonRegionFiles) {
+            ok = false
+        }
+        t.ok(ok, 'Expected to have loaded some files, got '+ JSON.stringify(stats))
+
         t.end()
     })
 }

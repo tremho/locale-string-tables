@@ -56,6 +56,20 @@ function pluralsTest() {
         x = 'twelfth Cow' // cap is per table
         t.ok(r === x, `ordinal: expected "${x}", got "${r}"`)
 
+        // test of mismatched parameters: forgot to  pass locale as first parameter
+        try {
+            r = i18n.getPluralizedString('foo.bar', 42)
+        } catch(e) {
+            r = e.message
+        }
+        x = 'Invalid language tag: foo.bar'
+        t.ok(r === x, 'no locale passed returns '+r)
+
+        let count = 1
+        r = i18n.getPluralizedString('es','cow', count)
+        x = 'Cow'
+        t.ok(r === x, `singular: expected "${x}", got "${r}"`)
+
 
         t.end()
 

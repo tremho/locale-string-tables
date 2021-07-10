@@ -437,7 +437,7 @@ export class LocaleStrings {
         // Use INTL if there
         if (!prSelect && INTL && INTL.PluralRules) {
             // @ts-ignore
-            prSelect = new INTL.PluralRules(locale, { type }).select()
+            prSelect = new INTL.PluralRules(locale, { type }).select(count)
         }
 
         if (prSelect) {

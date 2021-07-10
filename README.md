@@ -556,7 +556,8 @@ For example:
         -   if the ordinal suffix is not found, the un-appended suffix '.plural' will be used for lookup.
 
 The other source for pluralization is an application-supplied `pluralRules` script.
-This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language.
+This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language. This 
+script file must reside directly within the `i18n` folder, and not in any of the language subdirectories.
 
 This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
 
