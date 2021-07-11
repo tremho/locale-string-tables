@@ -213,7 +213,7 @@ code will work.  If you are relying on a different platform file
 system, you will need to adjust to match your platform.
 
 NodeFileOps.ts
-
+```
     import * as fs from 'fs'
     import * as path from 'path'
 
@@ -251,12 +251,12 @@ NodeFileOps.ts
 
     // note that we instantiate this class before exporting
     export default new NodeFileOps()
-
+```
 3.  create a module for your instance.  In this example, we'll call this module
     `i18`.  It should start out looking something like this:
 
 i18n.ts
-
+```
     import {getSystemLocale, LocaleStrings}  from '@tremho/locale-string-tables'
 
     // Have  your fileops ready (change this import line to suit your own FileOps object)
@@ -280,10 +280,10 @@ i18n.ts
 
     // export this for your app to use
     export default i18n 
-
+```
 4.  Use and apply in your own modules
 
-
+```
     import i18n from `./i18n'
 
     function someFunction() {
@@ -300,6 +300,7 @@ i18n.ts
         greet = i18n.getLocaleString('example.greeting')
         console.log(greet)
     }
+```
 
 In this hypothetical module, if `someFunction` is called,
 it will attempt to display a "hello" greeting in each of
@@ -556,8 +557,7 @@ For example:
         -   if the ordinal suffix is not found, the un-appended suffix '.plural' will be used for lookup.
 
 The other source for pluralization is an application-supplied `pluralRules` script.
-This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language. This 
-script file must reside directly within the `i18n` folder, and not in any of the language subdirectories.
+This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language.
 
 This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
 
@@ -576,9 +576,11 @@ This script may supply each of two methods.  These are optional, and default beh
     The function should return the pluralized version of the word in that form, either by rule or
     internal lookup, or else return null.
 
--   If the plural rule script is not available, the `intl.PluralRules` method will be used directly to
-    get the correct plural suffixed string from the i18n table, assuming a full or partiall implementation of Intl is
-    available.
+-   If the plural rule script is not available, the `Intl.PluralRules` method will be used directly to
+    get the correct plural suffixed string from the i18n table, assuming a full or partial implementation of W3C Intl is
+    available to the system.
+
+-   if the stringId has no singular entry in the table, then an empty string will be returned.
 
 -   If none of these support features are available, all requests will return a string "%$<NO PLURALS lang >$%"
     (where _lang_ is the language requested).
