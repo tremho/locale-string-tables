@@ -59,16 +59,16 @@ string definitions that are independent of language.
 
 Create a new folder for each language that you will support, using the
 ISO 639 2-letter language code (lower case) for that language (e.g. 'en', or 'fr')
-In this folder you will create files that define strings for a particular language,
+In this language folder you will create files that define strings for a particular language,
 but independent of region.  For example, English, regardless of whether it's US or GB.
 
 Create a new folder for each language-region you will support, using the 
 ISO 639 2-letter language code (lower case) followed by a dash ('-') and the
-ISO 3166 2-letter region code (upper case), as in RFC 1766. (e.g. 'en-US')
+ISO 3166 2-letter region code (upper case), as in RFC 1766. (e.g. 'en-US').  
 In these folders you will create files that define strings unique to this language region.
 For example, idioms and phrases, or format order and detail.
 
-You may also create folders named 'common-<region>' where <region> is the 
+You may also create folders named 'common-&lt;region&gt;' where &lt;region&gt; is the 
 ISO 3166 code for regions that you will support.  
 In these folders, you may wish to define strings (such as formats or other non-literal text)
 that apply to a geographical region regardless of the language.
@@ -79,7 +79,7 @@ Your `i18n` folder tree might look like this, for instance:
             common
                 serviceEndpoints.json
                 metricUnits.json
-            common-us
+            common-US
                 USImpUnits.json
             en
                 dateStrings.json
@@ -162,7 +162,7 @@ and become complex to manage as your app grows.
 
 #### Using _@tremho/gen-format_
 
-Consider using the npm package [@tremho/gen-format](<>),
+Consider using the npm package [@tremho/gen-format](https://www.npmjs.com/package/@tremho/gen-format),
 which provides generalized
 formatting support including localization for Date/Time among other things, and
 is based upon this library.  If you set up gen-format using the i18n tables that
@@ -170,7 +170,7 @@ are associated with it, you will have a pre-established localization structure
 you can continue to populate with your own strings across a large number of
 language locales.
 
-If you use gen-format, you do not need to import or set up the 
+If you use gen-format, you do not need to import or set up this 
 @tremho/locale-string-tables module independently
 
 ### Using locale-string-tables

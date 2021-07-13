@@ -327,7 +327,7 @@ export class LocaleStrings {
      *  "item.sheep.plural" : "sheep"
      *  ```
      *
-     *  in other languages (or for ordinal support), one may use the other suffixes of
+     *  in other languages, one may use the other suffixes of
      *  ".zero", ".two", ".few", ".many" or "plural"
      *
      * Note that these map directly to the terminology of the
@@ -355,11 +355,11 @@ export class LocaleStrings {
      *      animal.names.sheep = 'sheep'
      *      animal.names.sheep.plural = 'sheep'
      * ```
-     *  - Note that some languages pluralize differently depending upon the count, for example there may be different words
+     *  - As noted, some languages pluralize differently depending upon the count, for example there may be different words
      *  for 1 cow, 2 cows, 6 cows, or 20 cows
      *     - This is the role of `getPluralRulesSelect` (see below), or `Intl.PluralRules.select()` if available.
      *     - This should be supported by relevant pluralRules scripts where possible and practical.
-     *     - To support this behavior using the string tables, append the count to the string id, as in:
+     *     - To support this behavior using the string tables, append the 'select' result to the string id, as in:
      *     ```
      *         animal.name.cow
      *         animal.name.cow.two
@@ -367,12 +367,11 @@ export class LocaleStrings {
      *         animal.name.cow.many
      *         animal.name.cow.plural
      *      ```
-     *      - if the ordinal suffix is not found, the un-appended suffix '.plural' will be used for lookup.
      *
-     * The other source for pluralization is an application-supplied `pluralRules` script.
+     * Besides the string tables, the other source for pluralization is the `pluralRules` script.
      * This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language.
      *
-     * This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
+     * This script may supply each of three methods.  These are optional, and default behavior will occur if not defined.
      *
      * - __`getPluralRulesSelect`__ takes two arguments
      *  - `count` The number of items
@@ -431,7 +430,7 @@ export class LocaleStrings {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
         } catch (e) {
-            console.error('No pluralRules script found for '+lang)
+            console.error('No pluralRules script found for '+lang+ ' in ' +gFileOps.rootPath)
         }
 
         // Use INTL if there
@@ -476,6 +475,8 @@ export class LocaleStrings {
      * See the discussion of the `pluralRules` script in the documentation for `getPluralizedString`.
      * This function works the same way, but you pass the singular form word itself, not an identifier to look up in
      * the tables.
+     *
+     * pluralRules-en.js is provided by this library.  Other languages do not have pluralRules scripts supplied.
      *
      * @param {string} locale  The locale to pluralize this id for. If not given, the system locale is used.
      * @param {string} word  The word to be pluralized or ordinated, in singular form
@@ -539,5 +540,20 @@ export class LocaleStrings {
      */
     getInstalledLocales() {
         return Object.getOwnPropertyNames(installedLocales)
+    }
+
+    enumerateAvailableLocales(callback) {
+
+        let lastLoc = ''
+
+         gFileOps.enumerate(i18nFolder, (filePath:string) =>  {
+                let si = i18nFolder.length
+                let ni = filePath.indexOf('/', si)
+                let loc = filePath.substring(si, ni)
+                if(loc !== lastLoc && loc !== i18nFolder && loc.substring(0, 6) !== 'common') {
+                    lastLoc = loc
+                    callback(loc)
+                }
+         })
     }
 }

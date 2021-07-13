@@ -85,6 +85,15 @@ function apiTest() {
             t.ok(r === x, `expected "${x}", got "${r}"`)
         }
 
+        const ourLocales= ['en', 'en-GB', 'en-US', 'fr', 'fr-CA'] // es has no files, thus won't enum
+        let i = 0;
+        i18n.enumerateAvailableLocales(loc => {
+            r = loc
+            x = ourLocales[i++]
+            t.ok(r === x, `locale enumerate (${i}) expected "${x}", got "${r}"`)
+
+        })
+
         t.end()
 
 
