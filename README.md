@@ -49,6 +49,15 @@ In-memory, only those languages that have been loaded into scope
 will occupy Javascript Array space.  Unused locales in the
 data files will remain on disk.
 
+### Revision History
+
+-   **v 1.1.0 (prerelease)**  
+    added `enumerateAvailableLocales()` to the API
+
+
+-   **v 1.0.0 - 1.0.1**  
+    Initial release and subsequent doc updates
+
 ### Setting up for use in an application
 
 At the root of your project, create a folder named "i18n". Other names are possible,
@@ -68,7 +77,7 @@ ISO 3166 2-letter region code (upper case), as in RFC 1766. (e.g. 'en-US').
 In these folders you will create files that define strings unique to this language region.
 For example, idioms and phrases, or format order and detail.
 
-You may also create folders named 'common-&lt;region&gt;' where &lt;region&gt; is the 
+You may also create folders named 'common-&lt;region>' where &lt;region> is the 
 ISO 3166 code for regions that you will support.  
 In these folders, you may wish to define strings (such as formats or other non-literal text)
 that apply to a geographical region regardless of the language.
@@ -213,94 +222,93 @@ code will work.  If you are relying on a different platform file
 system, you will need to adjust to match your platform.
 
 NodeFileOps.ts
-```
-    import * as fs from 'fs'
-    import * as path from 'path'
 
-    let root = './'
+        import * as fs from 'fs'
+        import * as path from 'path'
 
-    class NodeFileOps {
-       // read a text file, returning contents as string
-        read(realPath:string): string {    
-            return fs.readFileSync(realPath).toString()
-        }
-        // enumerate all files within the folder tree given,
-        // sending paths to files found through callback
-        enumerate(dirPath:string, callback:any) {
-            let apath = path.normalize(path.join(root, dirPath))
-            if(!fs.existsSync(apath)) {
-                console.warn('warning: path not found '+apath)
-                return;
+        let root = './'
+
+        class NodeFileOps {
+           // read a text file, returning contents as string
+            read(realPath:string): string {    
+                return fs.readFileSync(realPath).toString()
             }
-            let entries = fs.readdirSync(apath)
-            entries.forEach(file => {
-                let pn = path.join(root, dirPath, file)
-                let state = fs.lstatSync(pn)
-                if(state.isDirectory()) {
-                    this.enumerate(path.join(dirPath, file), callback)
-                } else {
-                    callback(pn)
+            // enumerate all files within the folder tree given,
+            // sending paths to files found through callback
+            enumerate(dirPath:string, callback:any) {
+                let apath = path.normalize(path.join(root, dirPath))
+                if(!fs.existsSync(apath)) {
+                    console.warn('warning: path not found '+apath)
+                    return;
                 }
-            })
+                let entries = fs.readdirSync(apath)
+                entries.forEach(file => {
+                    let pn = path.join(root, dirPath, file)
+                    let state = fs.lstatSync(pn)
+                    if(state.isDirectory()) {
+                        this.enumerate(path.join(dirPath, file), callback)
+                    } else {
+                        callback(pn)
+                    }
+                })
+            }
+            
+            // property (or getter) that provides the root path
+            // that the `i18n` tree resides within.
+            get rootPath() { return '../../'}
         }
-        
-        // property (or getter) that provides the root path
-        // that the `i18n` tree resides within.
-        get rootPath() { return '../../'}
-    }
 
-    // note that we instantiate this class before exporting
-    export default new NodeFileOps()
-```
+        // note that we instantiate this class before exporting
+        export default new NodeFileOps()
+
 3.  create a module for your instance.  In this example, we'll call this module
     `i18`.  It should start out looking something like this:
 
 i18n.ts
-```
-    import {getSystemLocale, LocaleStrings}  from '@tremho/locale-string-tables'
 
-    // Have  your fileops ready (change this import line to suit your own FileOps object)
-    import {NodeFileOps} from './NodeFileOps' 
+        import {getSystemLocale, LocaleStrings}  from '@tremho/locale-string-tables'
 
-    // Construct the instance
-    const i18n = new LocaleStrings()
-    // init it with your fileops object
-    i18n.init(NodeFileOps)
+        // Have  your fileops ready (change this import line to suit your own FileOps object)
+        import {NodeFileOps} from './NodeFileOps' 
 
-    // (optional) preload locales you wish to use
-    // (they will load on demand anyway if you choose not to do that here)
-    i18n.loadForLocale(getSystemLocale())
-    i18n.loadForLocale('en')
-    i18n.loadForLocale('en-GB')
-    i18n.loadForLocale('fr-FR')
-    i18n.loadForLocale('fr-CA')
+        // Construct the instance
+        const i18n = new LocaleStrings()
+        // init it with your fileops object
+        i18n.init(NodeFileOps)
 
-    // set the current locale
-    i18n.setLocale(getSystemLocale())
+        // (optional) preload locales you wish to use
+        // (they will load on demand anyway if you choose not to do that here)
+        i18n.loadForLocale(getSystemLocale())
+        i18n.loadForLocale('en')
+        i18n.loadForLocale('en-GB')
+        i18n.loadForLocale('fr-FR')
+        i18n.loadForLocale('fr-CA')
 
-    // export this for your app to use
-    export default i18n 
-```
+        // set the current locale
+        i18n.setLocale(getSystemLocale())
+
+        // export this for your app to use
+        export default i18n 
+
 4.  Use and apply in your own modules
 
-```
-    import i18n from `./i18n'
 
-    function someFunction() {
-        // first english
-        i18n.setLocale('en-US')
-        let greet = i18n.getLocaleString('example.greeting')
-        console.log(greet)
-        // then french
-        i18n.setLocale('fr-FR')
-        greet = i18n.getLocaleString('example.greeting')
-        console.log(greet)
-        // then spanish
-        i18n.setLocale('es-ES')
-        greet = i18n.getLocaleString('example.greeting')
-        console.log(greet)
-    }
-```
+        import i18n from `./i18n'
+
+        function someFunction() {
+            // first english
+            i18n.setLocale('en-US')
+            let greet = i18n.getLocaleString('example.greeting')
+            console.log(greet)
+            // then french
+            i18n.setLocale('fr-FR')
+            greet = i18n.getLocaleString('example.greeting')
+            console.log(greet)
+            // then spanish
+            i18n.setLocale('es-ES')
+            greet = i18n.getLocaleString('example.greeting')
+            console.log(greet)
+        }
 
 In this hypothetical module, if `someFunction` is called,
 it will attempt to display a "hello" greeting in each of
@@ -515,7 +523,7 @@ plus a suffix (e.g. '.plural').  For example:
     "item.sheep": "sheep",
     "item.sheep.plural" : "sheep"
 
- in other languages (or for ordinal support), one may use the other suffixes of
+ in other languages, one may use the other suffixes of
  ".zero", ".two", ".few", ".many" or "plural"
 
 Note that these map directly to the terminology of the
@@ -544,22 +552,21 @@ For example:
          animal.names.sheep = 'sheep'
          animal.names.sheep.plural = 'sheep'
 
--   Note that some languages pluralize differently depending upon the count, for example there may be different words
+-   As noted, some languages pluralize differently depending upon the count, for example there may be different words
     for 1 cow, 2 cows, 6 cows, or 20 cows
     -   This is the role of `getPluralRulesSelect` (see below), or `Intl.PluralRules.select()` if available.
     -   This should be supported by relevant pluralRules scripts where possible and practical.
-    -   To support this behavior using the string tables, append the count to the string id, as in:
+    -   To support this behavior using the string tables, append the 'select' result to the string id, as in:
                 animal.name.cow
                 animal.name.cow.two
                 animal.name.cow.few
                 animal.name.cow.many
                 animal.name.cow.plural
-        -   if the ordinal suffix is not found, the un-appended suffix '.plural' will be used for lookup.
 
-The other source for pluralization is an application-supplied `pluralRules` script.
+Besides the string tables, the other source for pluralization is the `pluralRules` script.
 This code is within a script named for the language, as in `pluralRules-en.js` for the `en` language.
 
-This script may supply each of two methods.  These are optional, and default behavior will occur if not defined.
+This script may supply each of three methods.  These are optional, and default behavior will occur if not defined.
 
 -   **`getPluralRulesSelect`** takes two arguments
 -   `count` The number of items
@@ -615,6 +622,8 @@ See the discussion of the `pluralRules` script in the documentation for `getPlur
 This function works the same way, but you pass the singular form word itself, not an identifier to look up in
 the tables.
 
+pluralRules-en.js is provided by this library.  Other languages do not have pluralRules scripts supplied.
+
 #### Parameters
 
 -   `locale` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The locale to pluralize this id for. If not given, the system locale is used.
@@ -627,6 +636,25 @@ the tables.
 Returns an array of all the locales that have been currently loaded.
 
 Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** {string} Array of loaded locale strings
+
+### enumerateAvailableLocales
+
+Enumerates all available locales by lang-region identifier
+via a callback function that accepts the locale name as a string parameter.
+
+This walks the _i18n_ folder tree to determine which potential locales are
+available.  This differs from `getInstalledLocales`, which only lists those
+that have been loaded into memory.
+
+Note that folders in the _i18n_ tree that do not contain files will not be
+enumerated.
+
+The 'common' folders are not included in the enumeration, just the named languages
+and regions.
+
+#### Parameters
+
+-   `callback`  a function that accepts the locale identifier as a string.  This function will be called for each locale enumerated.
 
 ### StringTable
 

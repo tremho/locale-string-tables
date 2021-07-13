@@ -542,6 +542,22 @@ export class LocaleStrings {
         return Object.getOwnPropertyNames(installedLocales)
     }
 
+    /**
+     * Enumerates all available locales by lang-region identifier
+     * via a callback function that accepts the locale name as a string parameter.
+     *
+     * This walks the _i18n_ folder tree to determine which potential locales are
+     * available.  This differs from `getInstalledLocales`, which only lists those
+     * that have been loaded into memory.
+     *
+     * Note that folders in the _i18n_ tree that do not contain files will not be
+     * enumerated.
+     *
+     * The 'common' folders are not included in the enumeration, just the named languages
+     * and regions.
+     *
+     * @param callback - a function that accepts the locale identifier as a string.  This function will be called for each locale enumerated.
+     */
     enumerateAvailableLocales(callback) {
 
         let lastLoc = ''
