@@ -1,11 +1,11 @@
 {
   "name": "@tremho/locale-string-tables",
-  "version": "1.0.1",
+  "version": "1.1.0-prerelease-1+enumeration",
   "description": "###### Foundational code for i18n locale based string table lookup",
   "main": "build/index.js",
   "scripts": {
     "test": "npm run clean && npm run compile && tap --no-coverage ./build/test/*.test.js",
-    "test-direct": "npm run clean && npm run compile && node build/test/plurals.test.js",
+    "test-direct": "npm run clean && npm run compile && node build/test/api.test.js",
     "clean": "rm -fr build",
     "compile": "tsc",
     "doc": "npm run clean && npm run compile && inchjs && cd build; tsccd ./; documentation readme --readme-file ../README.md --markdown-toc false --section API src"

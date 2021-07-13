@@ -420,7 +420,7 @@ function translateObjectStrings (obj, shallow) {
  *  "item.sheep.plural" : "sheep"
  *  ```
  *
- *  in other languages (or for ordinal support), one may use the other suffixes of
+ *  in other languages, one may use the other suffixes of
  *  ".two", ".few", ".many" or "plural"
  *
  * Note that these map directly to the terminology of the
@@ -467,8 +467,6 @@ function translateObjectStrings (obj, shallow) {
  * - If neither of these support features are available, all requests will return a string "%$<NO PLURALS lang >$%"
  * (where *lang* is the language requested).
  *
- *
- * Note: future support for 'ordinal' and support for passed-in locale may be added later
  *
  * @param {string} stringId The i18n string identifier for the singular form of the word to pluralize
  * @param {number} count
