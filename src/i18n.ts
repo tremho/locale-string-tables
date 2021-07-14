@@ -18,12 +18,14 @@ let INTL = Intl
 let systemLanguage = 'en'
 let systemRegion = 'US'
 
-let i18nFolder
 let table
 let installedLocales = {}
 let installedLocaleStats = {}
 
 let gFileOps
+let i18nFolder
+
+const requireOffset = '../' // because we're in a directory (src)
 
 /**
  * Interrogates services of the underlying platform to determine the
@@ -72,14 +74,17 @@ export class LocaleStrings {
      * We must initialize LocaleStrings with a FileOps object that contains the following methods:
      *  `read(filepath)` - read text from the given true file path (e.g. fs.readFileSync)
      *  `enumerate(relDir)` -- enumerates recursively the folder (relative to presumed root) and calls back with full file paths for each fle
-     *  `rootPath` -- a string property or getter function that returns the relative or absolute path to the presumed root.
-     *  The `customLocation` optional path can point to someting other than "i18n/" as the folder off of root for the locale string files.
+     *  `i18nPath` -- a string property or getter function that returns the relative or absolute path to the presumed `i18n' folder, usually at project root.
      * @param {FileOps} fileOps - object containing necessary file operations for this environment
-     * @param {string} [customLocation] - optional alternate folder path other than 'i18n/'
+     * @param {string} [customLocation] - optional path than overrides the `i18nPath` in `FileOps` as the folder off of root for the locale string files
      */
     init(fileOps: FileOps, customLocation?:string):void {
-        i18nFolder = customLocation || 'i18n/'
         gFileOps = fileOps
+        if(customLocation) {
+            i18nFolder = customLocation
+        } else {
+            i18nFolder = gFileOps.i18nPath
+        }
         installedLocales = {}
         this.loadForLocale(getSystemLocale())
         this.setLocale(getSystemLocale())
@@ -422,15 +427,18 @@ export class LocaleStrings {
 
         let prSelect
         let lang = locale.split('-')[0].toLowerCase()
-        let ruleScript = i18nFolder + 'pluralRules-' + lang
+        let ruleScript = 'pluralRules-' + lang + '.js'
         let rules = null
         try {
-            rules = require(gFileOps.rootPath + ruleScript)
+            const rpath = i18nFolder + ruleScript
+            const path = require('path')
+            const apath = path.resolve(rpath)
+            rules = loadScriptModule(rpath)
             if (rules.getPluralRulesSelect) {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
         } catch (e) {
-            console.error('No pluralRules script found for '+lang+ ' in ' +gFileOps.rootPath)
+            console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
         }
 
         // Use INTL if there
@@ -489,10 +497,10 @@ export class LocaleStrings {
 
         let prSelect
         let lang = locale.split('-')[0].toLowerCase()
-        let ruleScript = i18nFolder + 'pluralRules-' + lang
+        let ruleScript = 'pluralRules-' + lang + '.js'
         let rules = null
         try {
-            rules = require(gFileOps.rootPath + ruleScript)
+            rules = loadScriptModule(i18nFolder + ruleScript)
             if (rules.getPluralRulesSelect) {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
@@ -510,8 +518,8 @@ export class LocaleStrings {
                 let pl = rules.findPlural(word, count, prSelect)
                 if (pl) return pl
             } else {
-                if(!rules) console.error('No pluralRules script found for '+lang)
-                else console.error('No findPlural function found in pluralRules for '+lang)
+                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
+            else console.error('No findPlural function found in pluralRules for '+lang)
                 return word
             }
         }
@@ -520,7 +528,7 @@ export class LocaleStrings {
                 let pl = rules.makeOrdinal(word, count, prSelect)
                 if (pl) return pl
             } else {
-                if(!rules) console.error('No pluralRules script found for '+lang)
+                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
                 else console.error('No makeOrdinal function found in pluralRules for '+lang)
                 return word
             }
@@ -562,14 +570,23 @@ export class LocaleStrings {
 
         let lastLoc = ''
 
-         gFileOps.enumerate(i18nFolder, (filePath:string) =>  {
-                let si = i18nFolder.length
+        let i18nComp = i18nFolder
+        if(i18nComp.charAt(0) === '.' && i18nComp.charAt(1) === '/') i18nComp = i18nComp.substring(2)
+
+        gFileOps.enumerate(i18nFolder, (filePath:string) =>  {
+                let si = i18nComp.length
                 let ni = filePath.indexOf('/', si)
                 let loc = filePath.substring(si, ni)
-                if(loc !== lastLoc && loc !== i18nFolder && loc.substring(0, 6) !== 'common') {
+                if(loc !== lastLoc && loc !== i18nComp && loc.substring(0, 6) !== 'common') {
                     lastLoc = loc
                     callback(loc)
                 }
          })
     }
+}
+
+function loadScriptModule(path) {
+    const source = gFileOps.read(path)
+    const script = eval(source)
+    return script
 }

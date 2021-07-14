@@ -49,14 +49,29 @@ In-memory, only those languages that have been loaded into scope
 will occupy Javascript Array space.  Unused locales in the
 data files will remain on disk.
 
+-------
 ### Revision History
 
--   **v 1.1.0 (prerelease)**  
-    added `enumerateAvailableLocales()` to the API
+##### v 1.1.0 (prerelease)
+- __new API:__  
+  - added `enumerateAvailableLocales()`
+- __changed API (breaking)__
+    _These changes only affect apps needing to declare a `FileOps` object_
+    - `FileOps` no longer support property `rootPath`.
+    - `FileOps` now requires property `i18nPath`, to indicate the i18n folder directly.
+    - Similarly, `init` parameter 'customLocation' behavior is modified as is no longer relative to the
+    (now non-existent) `rootPath`
+- __non-API changes__
+    - Fix major bug in  loading of _pluralRules_ scripts.
+    - documentation updates
 
 
--   **v 1.0.0 - 1.0.1**  
-    Initial release and subsequent doc updates
+
+
+##### v 1.0.0 - 1.0.1  
+ - Initial release and subsequent doc updates
+
+--------
 
 ### Setting up for use in an application
 
@@ -212,8 +227,9 @@ The steps to creating and initializing the instance are as follows:
     with the fully realized pathname of the file as the argument.
 
 
--   string property or getter function `rootPath` : returns the
-    relative or absolute path to the root folder.
+-   string property or getter function `i18bnOath` : returns the
+    relative or absolute path to the location of the _i18n_ folder that holds
+    the locale strings, usually off of the application root path.
 
 Since different applications may use this module in different
 contexts, it is up to the application to supply these basic
@@ -255,7 +271,7 @@ NodeFileOps.ts
             
             // property (or getter) that provides the root path
             // that the `i18n` tree resides within.
-            get rootPath() { return '../../'}
+            get i18nPath() { return './i18n/'}
         }
 
         // note that we instantiate this class before exporting
@@ -364,13 +380,12 @@ as 'en-US'
 We must initialize LocaleStrings with a FileOps object that contains the following methods:
  `read(filepath)` - read text from the given true file path (e.g. fs.readFileSync)
  `enumerate(relDir)` -- enumerates recursively the folder (relative to presumed root) and calls back with full file paths for each fle
- `rootPath` -- a string property or getter function that returns the relative or absolute path to the presumed root.
- The `customLocation` optional path can point to someting other than "i18n/" as the folder off of root for the locale string files.
+ `i18nPath` -- a string property or getter function that returns the relative or absolute path to the presumed \`i18n' folder, usually at project root.
 
 #### Parameters
 
 -   `fileOps` **FileOps** object containing necessary file operations for this environment
--   `customLocation` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional alternate folder path other than 'i18n/'
+-   `customLocation` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional path than overrides the `i18nPath` in `FileOps` as the folder off of root for the locale string files
 
 ### loadForLocale
 
