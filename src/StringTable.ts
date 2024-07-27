@@ -4,6 +4,7 @@
 export interface FileOps {
     read(relPath:string): string
     enumerate(dirPath:string, callback:any)
+    i18nPath:string
 }
 
 /**

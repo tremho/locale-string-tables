@@ -6,7 +6,7 @@ The primary i18n support foundation code.
 import {FileOps, StringTable} from "./StringTable";
 
 // Support for Nativescript
-let nsplatform, nsdevice
+let nsplatform:any, nsdevice:any
 try {
     nsplatform = require('@nativescript/core/platform')
     nsdevice = nsplatform.device
@@ -19,11 +19,7 @@ let systemLanguage = 'en'
 let systemRegion = 'US'
 
 let table
-let installedLocales = {}
-let installedLocaleStats = {}
-
-let gFileOps
-let i18nFolder
+let gFileOps:FileOps
 
 const requireOffset = '../' // because we're in a directory (src)
 
@@ -70,6 +66,13 @@ export class LoadStats {
 
 export class LocaleStrings {
 
+    installedLocales:any = {}
+    installedLocaleStats:any = {}
+
+    fileOps:FileOps
+    i18nFolder:string
+
+
     /**
      * We must initialize LocaleStrings with a FileOps object that contains the following methods:
      *  `read(filepath)` - read text from the given true file path (e.g. fs.readFileSync)
@@ -81,13 +84,20 @@ export class LocaleStrings {
     init(fileOps: FileOps, customLocation?:string):void {
         gFileOps = fileOps
         if(customLocation) {
-            i18nFolder = customLocation
+            this.i18nFolder = customLocation
         } else {
-            i18nFolder = gFileOps.i18nPath
+            this.i18nFolder = gFileOps?.i18nPath ?? './i18n'
         }
-        installedLocales = {}
+        this.installedLocales = {}
         this.loadForLocale(getSystemLocale())
         this.setLocale(getSystemLocale())
+    }
+
+    /**
+     * returns the path of the underlying tables
+     */
+    geti18nFolder() {
+        return this.i18nFolder
     }
 
     /**
@@ -99,9 +109,8 @@ export class LocaleStrings {
      */
     loadForLocale(locale):LoadStats {
         if(!locale) locale = getSystemLocale()
-        // console.log('---->> loadForLocale ' + locale)
-        if (installedLocales[locale]) {
-          return installedLocaleStats[locale]
+        if (this.installedLocales[locale]) {
+          return this.installedLocaleStats[locale]
         }
         const parts = locale.split('-')
         let lang = (parts[0] || '').toLowerCase()
@@ -117,13 +126,13 @@ export class LocaleStrings {
 
         const stats = new LoadStats()
         stats.localeName = locale
-        stats.commonFiles = this.loadFromFolder(i18nFolder + 'common', ftable)
-        stats.commonRegionFiles = this.loadFromFolder(i18nFolder + 'common-'+region, ftable)
-        stats.languageFiles = this.loadFromFolder(i18nFolder + lang, ftable)
-        stats.regionFiles = this.loadFromFolder(i18nFolder + lang+'-'+region, ftable)
+        stats.commonFiles = this.loadFromFolder(this.i18nFolder + 'common', ftable)
+        stats.commonRegionFiles = this.loadFromFolder(this.i18nFolder + 'common-'+region, ftable)
+        stats.languageFiles = this.loadFromFolder(this.i18nFolder + lang, ftable)
+        stats.regionFiles = this.loadFromFolder(this.i18nFolder + lang+'-'+region, ftable)
         stats.totalStrings = ftable.numStrings()
-        installedLocales[locale] = ftable
-        installedLocaleStats[locale] = stats
+        this.installedLocales[locale] = ftable
+        this.installedLocaleStats[locale] = stats
 
         return stats
     }
@@ -139,7 +148,7 @@ export class LocaleStrings {
         if(!locale) locale = getSystemLocale()
         const stats = this.loadForLocale(locale); // test for load and load it if necessary.
         if(this.isLocaleLoaded(locale)) {
-            table = installedLocales[locale]
+            table = this.installedLocales[locale]
         } else {
             throw 'Locale "'+locale+'" has not been loaded'
         }
@@ -163,7 +172,7 @@ export class LocaleStrings {
      * @return {boolean} `true` if the specified locale has been loaded
      */
     isLocaleLoaded(locale):boolean {
-        return !!installedLocales[locale]
+        return !!this.installedLocales[locale]
     }
 
     /**
@@ -188,15 +197,15 @@ export class LocaleStrings {
      * @param {string} id - the string identifier to find in the current locale
      * @param {string | undefined} useDefault - the string to return if the id is not found in the table.
      * do not include, or use _undefined_ to have a 'decorated' version of the id returned in this case.
-     * @param {boolean} silent - if the string id is not found, a warning is emitted to the console. Passing
-     * `true` here will silence these warnings.
+     * @param {boolean} showWarn - if the string id is not found, a warning is emitted to the console. Passing
+     * `false` here will silence these warnings.
      */
-    getLocaleString(id, useDefault?:string, silent?:boolean):string {
+    getLocaleString(id, useDefault?:string, showWarn?:boolean):string {
         if (!table) throw (Error('i18n init() has not been called before using'))
         let rt = table.getString(id)
         if (rt === undefined) {
             rt = useDefault === undefined ? '%$$>' + id + '<$$%' : useDefault // decorated not-found identifier
-            if (!silent) console.warn('>> i18n default >> "' + id + '": "' + rt + '"')
+            if (showWarn) console.warn('>>> i18n default >> "' + id + '": "' + rt + '"')
         }
         return rt
     }
@@ -430,7 +439,7 @@ export class LocaleStrings {
         let ruleScript = 'pluralRules-' + lang + '.js'
         let rules = null
         try {
-            const rpath = i18nFolder + ruleScript
+            const rpath = this.i18nFolder + ruleScript
             const path = require('path')
             const apath = path.resolve(rpath)
             rules = loadScriptModule(rpath)
@@ -438,7 +447,7 @@ export class LocaleStrings {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
         } catch (e) {
-            console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
+            console.error('No pluralRules script found for '+lang+ ' in ' +this.i18nFolder)
         }
 
         // Use INTL if there
@@ -500,7 +509,7 @@ export class LocaleStrings {
         let ruleScript = 'pluralRules-' + lang + '.js'
         let rules = null
         try {
-            rules = loadScriptModule(i18nFolder + ruleScript)
+            rules = loadScriptModule(this.i18nFolder + ruleScript)
             if (rules.getPluralRulesSelect) {
                 prSelect = rules.getPluralRulesSelect(count, type)
             }
@@ -518,7 +527,7 @@ export class LocaleStrings {
                 let pl = rules.findPlural(word, count, prSelect)
                 if (pl) return pl
             } else {
-                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
+                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +this.i18nFolder)
             else console.error('No findPlural function found in pluralRules for '+lang)
                 return word
             }
@@ -528,7 +537,7 @@ export class LocaleStrings {
                 let pl = rules.makeOrdinal(word, count, prSelect)
                 if (pl) return pl
             } else {
-                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +i18nFolder)
+                if(!rules) console.error('No pluralRules script found for '+lang+ ' in ' +this.i18nFolder)
                 else console.error('No makeOrdinal function found in pluralRules for '+lang)
                 return word
             }
@@ -547,7 +556,7 @@ export class LocaleStrings {
      * @returns {Array} {string} Array of loaded locale strings
      */
     getInstalledLocales() {
-        return Object.getOwnPropertyNames(installedLocales)
+        return Object.getOwnPropertyNames(this.installedLocales)
     }
 
     /**
@@ -570,10 +579,10 @@ export class LocaleStrings {
 
         let lastLoc = ''
 
-        let i18nComp = i18nFolder
+        let i18nComp = this.i18nFolder
         if(i18nComp.charAt(0) === '.' && i18nComp.charAt(1) === '/') i18nComp = i18nComp.substring(2)
 
-        gFileOps.enumerate(i18nFolder, (filePath:string) =>  {
+        gFileOps.enumerate(this.i18nFolder, (filePath:string) =>  {
                 let si = i18nComp.length
                 let ni = filePath.indexOf('/', si)
                 let loc = filePath.substring(si, ni)
