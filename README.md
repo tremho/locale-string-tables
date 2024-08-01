@@ -712,3 +712,4 @@ This is an asynchronous non-blocking promise call.
 -   `silent` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** `true` to supress file not found error.  Other errors may still throw.
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+ 
