@@ -4,6 +4,7 @@ The primary i18n support foundation code.
  */
 
 import {FileOps, StringTable} from "./StringTable";
+import path from 'path'
 
 // Support for Nativescript
 let nsplatform:any, nsdevice:any
@@ -580,11 +581,11 @@ export class LocaleStrings {
         let lastLoc = ''
 
         let i18nComp = this.i18nFolder
-        if(i18nComp.charAt(0) === '.' && i18nComp.charAt(1) === '/') i18nComp = i18nComp.substring(2)
+        if(i18nComp.charAt(0) === '.' && (i18nComp.charAt(1) === '/' || i18nComp.charAt(1) === '\\')) i18nComp = i18nComp.substring(2)
 
         gFileOps.enumerate(this.i18nFolder, (filePath:string) =>  {
                 let si = i18nComp.length
-                let ni = filePath.indexOf('/', si)
+                let ni = filePath.indexOf(path.sep, si)
                 let loc = filePath.substring(si, ni)
                 if(loc !== lastLoc && loc !== i18nComp && loc.substring(0, 6) !== 'common') {
                     lastLoc = loc

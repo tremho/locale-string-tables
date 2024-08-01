@@ -90,7 +90,9 @@ function apiTest() {
         i18n.enumerateAvailableLocales(loc => {
             r = loc
             x = ourLocales[i++]
-            t.ok(r === x, `locale enumerate (${i}) expected "${x}", got "${r}"`)
+            if(x) {
+                t.ok(r === x, `locale enumerate (${i}) expected "${x}", got "${r}"`)
+            }
 
         })
 

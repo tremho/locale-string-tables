@@ -7,8 +7,8 @@
     "prepublish": "npm run clean && npm run build",
     "clean": "npx rimraf build",
     "build": "tsc",
-    "test": "npm run clean && npm run compile && tap --no-coverage ./build/test/*.test.js",
-    "test-direct": "npm run clean && npm run compile && node build/test/plurals.test.js",
+    "test": "npm run clean && npm run compile && tap ./build/test/*.test.js",
+    "test-direct": "npm run clean && npm run compile && node build/test/api.test.js",
     "compile": "tsc",
     "doc": "npm run clean && npm run compile && inchjs && cd build; tsccd ./; documentation readme --readme-file ../README.md --markdown-toc false --section API src"
   },
@@ -22,7 +22,7 @@
     "@types/node": "^15.12.4",
     "inchjs": "^0.4.1",
     "rimraf": "^6.0.1",
-    "tap": "^15.0.9",
+    "tap": "^21.0.0",
     "ts-clear-classdoc": "^1.0.1"
   },
   "directories": {
