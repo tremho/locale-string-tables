@@ -1,6 +1,6 @@
 {
   "name": "@tremho/locale-string-tables",
-  "version": "2.0.0-pre-release.7",
+  "version": "2.0.0-pre-release.8",
   "description": "###### Foundational code for i18n locale based string table lookup",
   "main": "build/index.js",
   "scripts": {
